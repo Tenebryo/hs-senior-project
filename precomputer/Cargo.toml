@@ -1,0 +1,6 @@
+[package]
+name = "precomputer"
+version = "0.1.0"
+authors = ["Sam Blazes <sblazes16@gmail.com>"]
+
+[dependencies]
