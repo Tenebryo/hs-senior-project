@@ -1,11 +1,6 @@
 [package]
-name = "solver"
+name = "recognizer"
 version = "0.1.0"
 authors = ["Sam Blazes <sblazes16@gmail.com>"]
 
-[lib]
-name="solver"
-path="src/lib.rs"
-
 [dependencies]
-cubelib = {path="../cubelib"}

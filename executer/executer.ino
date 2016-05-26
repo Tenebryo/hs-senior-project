@@ -1,22 +1,66 @@
-short steppers[][5] = {
-  //{STEP, DIR, EN, +5V, STEPS/REV}
-  {30, 32, 34, 36, 200}, //Left
-  {31, 33, 35, 37, 200}, //Back
-  {38, 40, 42, 44, 200}, //Front
-  {39, 41, 43, 45, 200}, //Top
-  {46, 48, 50, 52, 200}, //Bottom
-  {47, 49, 51, 53, 200}  //Right
+#include<stdarg.h>
+
+class Stepper {
+  private:
+    short STEP, DIR, EN, PWR;
+
+  public:
+
+    Stepper(short _STEP, short _DIR, short _EN, short _PWR) {
+      STEP = _STEP;
+      DIR  = _DIR;
+      EN   = _EN;
+      PWR  = _PWR;
+    }
+
+    void init() {
+      pinMode(STEP, OUTPUT);
+      pinMode(DIR, OUTPUT);
+      pinMode(EN, OUTPUT);
+      pinMode(PWR, OUTPUT);
+
+      digitalWrite(EN, HIGH);
+      digitalWrite(PWR, HIGH);
+    }
+
+    void enable() {
+      digitalWrite(EN, HIGH);
+    }
+
+    void disable() {
+      digitalWrite(EN, LOW);
+    }
+
+    void step(int steps, int d) {
+      digitalWrite(DIR, ((steps < 0) ? HIGH : LOW));
+      for (int i = 0; i < abs(steps); i++) {
+        digitalWrite(STEP, HIGH);
+        delayMicroseconds(d);
+        digitalWrite(STEP, LOW);
+        delayMicroseconds(d);
+      }
+    }
+
+
+    static void simul_step_steppers(Stepper s1, int steps1, Stepper s2, int steps2, int d) {
+      digitalWrite(s1.DIR, ((steps1 < 0) ? HIGH : LOW));
+      digitalWrite(s2.DIR, ((steps2 < 0) ? HIGH : LOW));
+      for (int i = 0; i < max(abs(steps1), abs(steps2)); i++) {
+        if (i < steps1) digitalWrite(s1.STEP, HIGH);
+        if (i < steps2) digitalWrite(s2.STEP, HIGH);
+        delayMicroseconds(d);
+        if (i < steps1) digitalWrite(s1.STEP, LOW);
+        if (i < steps2) digitalWrite(s2.STEP, LOW);
+        delayMicroseconds(d);
+      }
+    }
 };
-
-char commands[32];
-
-int steps_per_quarter_turn = 100;
 
 char get_nybble(char* arr, int i) {
   if (i % 2 == 0)
-    return arr[i] >> 4;
+    return arr[i / 2] >> 4;
   else
-    return arr[i] % 16;
+    return arr[i / 2] % 16;
 }
 
 char get_cmd_stepper_index(char cmd) {
@@ -24,100 +68,98 @@ char get_cmd_stepper_index(char cmd) {
 }
 
 char get_cmd_direction(char cmd) {
-  return cmd >> 3;
+  return (cmd >> 3) % 2;
 }
 
-void init_stepper(short* stepper) {
-  pinMode(stepper[0], OUTPUT);
-  pinMode(stepper[1], OUTPUT);
-  pinMode(stepper[2], OUTPUT);
-  pinMode(stepper[3], OUTPUT);
-
-  digitalWrite(stepper[2], HIGH);
-  digitalWrite(stepper[3], HIGH);
-}
-
-void enable_stepper(short* stepper) {
-  digitalWrite(stepper[2], HIGH);
-}
-
-void disable_stepper(short* stepper) {
-  digitalWrite(stepper[2], LOW);
-}
-
-void step_stepper(short* stepper, int steps, int d) {
-  digitalWrite(stepper[1], ((steps < 0) ? HIGH : LOW));
-  for (int i = 0; i < abs(steps); i++) {
-    digitalWrite(stepper[0], HIGH);
-    delayMicroseconds(d);
-    digitalWrite(stepper[0], LOW);
-    delayMicroseconds(d);
+short stepper_index(char c) {
+  switch (c) {
+    case 'f'://front
+      return 2;
+      break;
+    case 'u'://top
+      return 3;
+      break;
+    case 'r'://right
+      return 0;
+      break;
+    case 'l'://left
+      return 5;
+      break;
+    case 'b'://back
+      return 1;
+      break;
+    case 'd'://bottom
+      return 4;
+      break;
+    default:
+      return -1;
+      break;
   }
 }
 
-void simul_step_steppers(short* stepper1, int steps1, short* stepper2, int steps2, int d) {
-  digitalWrite(stepper1[1], ((steps1 < 0) ? HIGH : LOW));
-  digitalWrite(stepper2[1], ((steps2 < 0) ? HIGH : LOW));
-  for (int i = 0; i < max(abs(steps1), abs(steps2)); i++) {
-    if (i < steps1) digitalWrite(stepper1[0], HIGH);
-    if (i < steps2) digitalWrite(stepper2[0], HIGH);
-    delayMicroseconds(d);
-    if (i < steps1) digitalWrite(stepper1[0], LOW);
-    if (i < steps2) digitalWrite(stepper2[0], LOW);
-    delayMicroseconds(d);
-  }
-}
+bool debug = false;
+int steps_per_quarter_turn = 100;
+
+Stepper steppers[6] = {
+  //{STEP, DIR, EN, +5V, STEPS/REV}
+  Stepper(30, 32, 34, 36), //Right
+  Stepper(31, 33, 35, 37), //Back
+  Stepper(38, 40, 42, 44), //Front
+  Stepper(39, 41, 43, 45), //Top
+  Stepper(46, 48, 50, 52), //Bottom
+  Stepper(47, 49, 51, 53)  //Left
+};
 
 void setup() {
   for (int i = 0; i < 6; i++) {
-    init_stepper(steppers[i]);
+    steppers[i].init();
   }
   Serial.begin(9600);
 }
 
 void loop() {
-  int n;
-  if (n = Serial.available()) {
-    char buf[2];
-
-    Serial.readBytes(buf, 2);
+  char buf[64];
+  if (Serial.available()) {
+    Serial.readBytes(buf, 1);
     char command = buf[0];
-    char dir = buf[1];
+    if (command == 's') {
+      //receiving a sequence of moves from the serial port.
+      short n = 0;
+      Serial.readBytes((char*)(&n), 1); //big endian encoding
 
-    Serial.print(command);
-    Serial.println(dir);
+      if ((n + 1) / 2 > 64) {
+        Serial.println("Incoming buffer too long!");
+      } else {
+        //read and execute the manuever
+        Serial.readBytes(buf, n);
 
-    int stepper_i = -1;
-    switch (command) {
-      case 'f'://front
-        stepper_i = 2;
-        break;
-      case 't'://top
-        stepper_i = 3;
-        break;
-      case 'l'://left
-        stepper_i = 0;
-        break;
-      case 'r'://right
-        stepper_i = 5;
-        break;
-      case 'b'://back
-        stepper_i = 1;
-        break;
-      case 'B'://bottom
-        stepper_i = 4;
-        break;
-      default:
-        break;
-    }
+        for (int i = 0; i < n; i++) {
+          char cmd = buf[i];
 
-    if (stepper_i != -1) {
-      if (dir == '+' || dir == '-')
-        step_stepper(steppers[stepper_i], ((dir == '+') ? 1 : -1) * 100, 275);
-      else if (dir == 'd')
-        disable_stepper(steppers[stepper_i]);
-      else if (dir == 'e')
-        enable_stepper(steppers[stepper_i]);
+          steppers[get_cmd_stepper_index(cmd)].step((get_cmd_direction(cmd) ? 1 : -1)*steps_per_quarter_turn , 275);
+          delay(10);
+        }
+      }
+    } else if (command == 'D') {
+      Serial.println(debug ? "Debugging off." : "Debugging on.");
+      debug = !debug;
+    } else {
+      Serial.readBytes(buf, 1);
+      char dir = buf[0];
+
+      Serial.print(command);
+      Serial.println(dir);
+
+      int stepper_i = stepper_index(command);
+
+      if (stepper_i != -1) {
+        if (dir == '+' || dir == '-')
+          steppers[stepper_i].step(((dir == '+') ? 1 : -1) * 100, 275);
+        else if (dir == 'd')
+          steppers[stepper_i].disable();
+        else if (dir == 'e')
+          steppers[stepper_i].enable();
+      }
     }
   }
 }
