@@ -1,9 +1,9 @@
-pub use coordcube::coordcube;
+/*pub use coordcube::coordcube;
 pub use cubiecube::cubiecube;
 
 pub mod coordcube;
 pub mod cubiecube;
-mod util;
+mod util;*/
 
 #[cfg(test)]
 mod test {

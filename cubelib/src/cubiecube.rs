@@ -63,7 +63,7 @@ mod cubiecube {
             }
         }
         
-        fn c(&self) -> u8 {
+        fn e(&self) -> u8 {
             self.d >> 4
         }
         
@@ -127,17 +127,35 @@ mod cubiecube {
         fn corner_permutation_coord(&self) -> u32 {
             let mut s = 0;
             for (i,co) in self.co.iter().cloned().enumerate().skip(1) {
-                s += util::factorial(i)*self.co.iter().cloned().take(i).filter(|c| c.c() > co).count();
+                s += util::factorial(i as u32)*self.co.iter().cloned().take(i).filter(|c| c.c() > co).count() as u32;
             }
             s
         }
         
-        fn corner_permutation_coord(&self) -> u32 {
+        fn edge_permutation_coord(&self) -> u32 {
             let mut s = 0;
             for (i,ed) in self.ed.iter().cloned().enumerate().skip(1) {
-                s += util::factorial(i)*self.ed.iter().cloned().take(i).filter(|e| e.c() > ed).count();
+                s += util::factorial(i as u32)*self.ed.iter().cloned().take(i).filter(|e| e.e() > ed).count() as u32;
             }
             s
+        }
+        
+        fn ud_slice_coord(&self) -> u32 {
+            self.ed.iter().enumerate().fold((0,-1), |(s, c), &(i, e)| {
+                if 8 <= e && e < 12 {
+                    (s, c+1)
+                } else {
+                    (s+util::binomial(i,c), c)
+                }
+            }).0
+        }
+        
+        fn p2_edge_permutation_coord(&self) -> u32 {
+            
+        }
+        
+        fn p2_ud_slice_coord(&self) -> u32 {
+            
         }
     }
 }

@@ -73,22 +73,22 @@ char get_cmd_direction(char cmd) {
 
 short stepper_index(char c) {
   switch (c) {
-    case 'f'://front
+    case 'f': case 'F'://front
       return 2;
       break;
-    case 'u'://top
+    case 'u': case 'U'://top
       return 3;
       break;
-    case 'r'://right
+    case 'r': case 'R'://right
       return 0;
       break;
-    case 'l'://left
+    case 'l': case 'L'://left
       return 5;
       break;
-    case 'b'://back
+    case 'b': case 'B'://back
       return 1;
       break;
-    case 'd'://bottom
+    case 'd': case 'D'://bottom
       return 4;
       break;
     default:
@@ -99,6 +99,8 @@ short stepper_index(char c) {
 
 bool debug = false;
 int steps_per_quarter_turn = 100;
+int micros_between_steps = 250;
+int millis_between_moves = 10;
 
 Stepper steppers[6] = {
   //{STEP, DIR, EN, +5V, STEPS/REV}
@@ -136,11 +138,11 @@ void loop() {
         for (int i = 0; i < n; i++) {
           char cmd = buf[i];
 
-          steppers[get_cmd_stepper_index(cmd)].step((get_cmd_direction(cmd) ? 1 : -1)*steps_per_quarter_turn , 275);
-          delay(10);
+          steppers[get_cmd_stepper_index(cmd)].step((get_cmd_direction(cmd) ? 1 : -1)*steps_per_quarter_turn , micros_between_steps);
+          delay(millis_between_moves);
         }
       }
-    } else if (command == 'D') {
+    } else if (command == 'O') {
       Serial.println(debug ? "Debugging off." : "Debugging on.");
       debug = !debug;
     } else {
@@ -154,7 +156,7 @@ void loop() {
 
       if (stepper_i != -1) {
         if (dir == '+' || dir == '-')
-          steppers[stepper_i].step(((dir == '+') ? 1 : -1) * 100, 275);
+          steppers[stepper_i].step(((dir == '+') ? 1 : -1) * ((command & 32)?2:100), micros_between_steps);
         else if (dir == 'd')
           steppers[stepper_i].disable();
         else if (dir == 'e')

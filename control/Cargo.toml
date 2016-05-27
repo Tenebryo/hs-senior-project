@@ -5,15 +5,9 @@ authors = ["Sam Blazes <sblazes16@gmail.com>"]
 
 [dependencies]
 conrod = "0.35.0"
-
-[dependencies.cubelib]
-path="../cubelib"
-
-[dependencies.solver]
-path="../solver"
-
-[dependencies.recognizer]
-path="../recognizer"
-
-[dependencies.precomputer]
-path="../precomputer"
+serial = "0.3.3"
+piston_window = "0.47.0"
+cubelib = {path="../cubelib"}
+solver = {path="../solver"}
+recognizer = {path="../recognizer"}
+precomputer = {path="../precomputer"}

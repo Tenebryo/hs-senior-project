@@ -1,8 +1,8 @@
 extern crate cubelib;
 
-pub use solver::ida_star;
+//pub use solver::ida_star;
 
-mod solver;
+//mod solver;
 
 #[cfg(test)]
 mod test {

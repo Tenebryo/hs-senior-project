@@ -1,0 +1,34 @@
+TARGET = Some("x86_64-pc-windows-gnu")
+OPT_LEVEL = Some("0")
+PROFILE = Some("debug")
+TARGET = Some("x86_64-pc-windows-gnu")
+debug=true opt-level=0
+HOST = Some("x86_64-pc-windows-gnu")
+TARGET = Some("x86_64-pc-windows-gnu")
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+CC_x86_64-pc-windows-gnu = None
+CC_x86_64_pc_windows_gnu = None
+HOST_CC = None
+CC = None
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+CFLAGS_x86_64-pc-windows-gnu = None
+CFLAGS_x86_64_pc_windows_gnu = None
+HOST_CFLAGS = None
+CFLAGS = None
+running: "gcc.exe" "-O0" "-ffunction-sections" "-fdata-sections" "-g" "-m64" "-o" "D:\\dev\\Other\\hs-senior-project\\control\\target\\debug\\build\\miniz-sys-fcf0df5bde59c9aa\\out\\miniz.o" "-c" "miniz.c"
+ExitStatus(ExitStatus(0))
+TARGET = Some("x86_64-pc-windows-gnu")
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+AR_x86_64-pc-windows-gnu = None
+AR_x86_64_pc_windows_gnu = None
+HOST_AR = None
+AR = None
+TARGET = Some("x86_64-pc-windows-gnu")
+running: "ar" "crus" "D:\\dev\\Other\\hs-senior-project\\control\\target\\debug\\build\\miniz-sys-fcf0df5bde59c9aa\\out\\libminiz.a" "D:\\dev\\Other\\hs-senior-project\\control\\target\\debug\\build\\miniz-sys-fcf0df5bde59c9aa\\out\\miniz.o"
+ExitStatus(ExitStatus(0))
+cargo:rustc-link-lib=static=miniz
+cargo:rustc-link-search=native=D:\dev\Other\hs-senior-project\control\target\debug\build\miniz-sys-fcf0df5bde59c9aa\out
+cargo:root=D:\dev\Other\hs-senior-project\control\target\debug\build\miniz-sys-fcf0df5bde59c9aa\out
