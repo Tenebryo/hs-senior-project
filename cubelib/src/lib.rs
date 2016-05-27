@@ -1,9 +1,9 @@
-pub use cube::Cube;
-pub use cube::Move;
-pub use cube::Face;
-pub use cube::Manuever;
+pub use coordcube::coordcube;
+pub use cubiecube::cubiecube;
 
-pub mod cube;
+pub mod coordcube;
+pub mod cubiecube;
+mod util;
 
 #[cfg(test)]
 mod test {
