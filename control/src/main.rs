@@ -38,6 +38,12 @@ type Backend = (<piston_window::G2d<'static> as conrod::Graphics>::Texture, Glyp
 type Ui = conrod::Ui<Backend>;
 type UiCell<'a> = conrod::UiCell<'a, Backend>;
 
+fn encode_seq(ms : &[u8]) -> Vec<u8> {
+    let mut r :Vec<u8> = vec!['s' as u8,ms.len() as u8];
+    r.extend(ms.iter().cloned());
+    r
+}
+
 struct Control {
     port : Option<Box<SerialPort>>,
     port_name : String,
@@ -52,18 +58,29 @@ impl Control {
     }
     
     fn send_via_port<'a>(&mut self, bytes : &'a [u8]) {
-        match self.port {
-            None => (),
-            Some(s) => {
+        match &mut self.port {
+            &mut None => (),
+            &mut Some(ref mut s) => {
                 match s.reconfigure(&|settings| {
-                    match settings.set_baud_rate(serial::Baud9600) { Err(e) => {/*handle error*/}, _ => () }
+                    match settings.set_baud_rate(serial::Baud9600) { Err(e) => {return Err(e);}, _ => () }
                     settings.set_char_size(serial::Bits8);
                     settings.set_parity(serial::Parity::ParityNone);
                     settings.set_stop_bits(serial::StopBits::Stop1);
                     settings.set_flow_control(serial::FlowControl::FlowNone);
+                    Ok(())
                 }) {
                     Err(e) => {/*handle error*/},
                     _ => ()
+                }
+            }
+        }
+            
+        match &mut self.port {
+            &mut None => (),
+            &mut Some(ref mut p) => {
+                match p.write(bytes) {
+                    Err(e) => {/*Handle Error*/},
+                    Ok(_) => ()
                 }
             }
         }
@@ -99,14 +116,14 @@ impl Control {
                 .top_right_with_margin_on(CANVAS, 16.0)
                 .down_from(TITLEBAR, 16.0)
                 .w(256.0)
-                .h(96.0)
+                .h(112.0)
                 .color(color::rgb_bytes(0x02, 0x77, 0xBD))
                 .set(PORT_DIALOG, ui);
                 
             Canvas::new()
                 .frame(0.0)
                 .w_of(PORT_DIALOG)
-                .h(32.0)
+                .h(48.0)
                 .mid_top_of(PORT_DIALOG)
                 .color(color::rgb_bytes(0x00, 0xB0, 0xFF))
                 .set(PORT_TITLE_BAR, ui);
@@ -148,35 +165,86 @@ impl Control {
                 .frame(0.0)
                 .bottom_right_with_margin_on(CANVAS, 16.0)
                 .w(256.0)
-                .h(512.0)
+                .h(352.0)
                 .color(color::rgb_bytes(0x02, 0x77, 0xBD))
                 .set(MANUAL_DIALOG, ui);
                 
             Canvas::new()
                 .frame(0.0)
                 .w_of(MANUAL_DIALOG)
-                .h(32.0)
+                .h(48.0)
                 .mid_top_of(MANUAL_DIALOG)
-                .color(color::rgb_bytes(0x02, 0x77, 0xBD))
+                .color(color::rgb_bytes(0x00, 0xB0, 0xFF))
                 .set(MANUAL_TITLE_BAR, ui);
             
             Text::new("Manual Control")
                 .middle_of(MANUAL_TITLE_BAR)
                 .font_size(32)
-                .color(color::rgb_bytes(0xff,0xff,0xff))
+                .color(color::rgb_bytes(0x10,0x10,0x10))
                 .set(MANUAL_TITLE, ui);
             
-            let si = ["U", "R", "F", "D", "L", "B"];
+            let sidi = ['U', 'R', 'F', 'D', 'L', 'B'];
+            let seqi = [0b0000, 0b0001, 0b0010, 0b0011, 0b0100, 0b0101];
             for i in 0..6 {
+                
                 Button::new()
-                    .label(si[i])
+                    .frame(0.0)
+                    .label(std::str::from_utf8(&[sidi[i] as u8]).unwrap())
                     .w(32.0)
                     .h(32.0)
                     .top_left_with_margin_on(MANUAL_DIALOG, 16.0)
                     .down_from(if i == 0 {MANUAL_TITLE_BAR} else {MANUAL_BIG + (i - 1)}, 16.0)
                     .color(color::rgb_bytes(0x00, 0x91, 0xEA))
-                    .react(|| {})
+                    .react(|| {
+                        println!("SEND: {}+", sidi[i]);
+                        self.send_via_port(&[sidi[i] as u8, '+' as u8]);
+                    })
                     .set(MANUAL_BIG + i, ui);
+                    
+                
+                Button::new()
+                    .frame(0.0)
+                    .label(std::str::from_utf8(&[sidi[i] as u8 ^ (1<<5)]).unwrap())
+                    .w(32.0)
+                    .h(32.0)
+                    .right_from(MANUAL_BIG + i, 16.0)
+                    //.down_from(if i == 0 {MANUAL_TITLE_BAR} else {MANUAL_SMALL + (i - 1)}, 16.0)
+                    .color(color::rgb_bytes(0x00, 0x91, 0xEA))
+                    .react(|| {
+                        println!("SEND: {}+", sidi[i]);
+                        self.send_via_port(&[sidi[i] as u8 ^ (1<<5), '+' as u8]);
+                    })
+                    .set(MANUAL_SMALL + i, ui);
+                    
+                    
+                Button::new()
+                    .frame(0.0)
+                    .label(std::str::from_utf8(&[sidi[i] as u8, '\'' as u8]).unwrap())
+                    .w(32.0)
+                    .h(32.0)
+                    .top_right_with_margin_on(MANUAL_DIALOG, 16.0)
+                    .down_from(if i == 0 {MANUAL_TITLE_BAR} else {MANUAL_BIG_PRIME + (i - 1)}, 16.0)
+                    .color(color::rgb_bytes(0x00, 0x91, 0xEA))
+                    .react(|| {
+                        println!("SEND: {}+", sidi[i]);
+                        self.send_via_port(&[sidi[i] as u8, '-' as u8]);
+                    })
+                    .set(MANUAL_BIG_PRIME + i, ui);
+                    
+                
+                Button::new()
+                    .frame(0.0)
+                    .label(std::str::from_utf8(&[sidi[i] as u8 ^ (1<<5), '\'' as u8]).unwrap())
+                    .w(32.0)
+                    .h(32.0)
+                    .left_from(MANUAL_BIG_PRIME + i, 16.0)
+                    //.down_from(if i == 0 {MANUAL_TITLE_BAR} else {MANUAL_SMALL + (i - 1)}, 16.0)
+                    .color(color::rgb_bytes(0x00, 0x91, 0xEA))
+                    .react(|| {
+                        println!("SEND: {}+", sidi[i]);
+                        self.send_via_port(&[sidi[i] as u8 ^ (1<<5), '-' as u8]);
+                    })
+                    .set(MANUAL_SMALL_PRIME + i, ui);
             }
             
         }

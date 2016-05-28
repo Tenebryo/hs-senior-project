@@ -73,23 +73,23 @@ char get_cmd_direction(char cmd) {
 
 short stepper_index(char c) {
   switch (c) {
+    case 'u': case 'U'://top
+      return 0;
+      break;
+    case 'r': case 'R'://right
+      return 1;
+      break;
     case 'f': case 'F'://front
       return 2;
       break;
-    case 'u': case 'U'://top
+    case 'd': case 'D'://bottom
       return 3;
       break;
-    case 'r': case 'R'://right
-      return 0;
-      break;
     case 'l': case 'L'://left
-      return 5;
+      return 4;
       break;
     case 'b': case 'B'://back
-      return 1;
-      break;
-    case 'd': case 'D'://bottom
-      return 4;
+      return 5;
       break;
     default:
       return -1;
@@ -104,12 +104,12 @@ int millis_between_moves = 10;
 
 Stepper steppers[6] = {
   //{STEP, DIR, EN, +5V, STEPS/REV}
-  Stepper(30, 32, 34, 36), //Right
-  Stepper(31, 33, 35, 37), //Back
-  Stepper(38, 40, 42, 44), //Front
-  Stepper(39, 41, 43, 45), //Top
-  Stepper(46, 48, 50, 52), //Bottom
-  Stepper(47, 49, 51, 53)  //Left
+  Stepper(39, 41, 43, 45), //Up    => 0
+  Stepper(30, 32, 34, 36), //Right => 1
+  Stepper(38, 40, 42, 44), //Front => 2
+  Stepper(46, 48, 50, 52), //Down  => 3
+  Stepper(47, 49, 51, 53)  //Left  => 4
+  Stepper(31, 33, 35, 37), //Back  => 5
 };
 
 void setup() {
