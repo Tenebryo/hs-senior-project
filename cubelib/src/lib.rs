@@ -1,5 +1,8 @@
+use util::*;
+mod util;
 /*pub use coordcube::coordcube;
 pub use cubiecube::cubiecube;
+
 
 pub mod coordcube;
 pub mod cubiecube;

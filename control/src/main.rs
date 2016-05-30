@@ -45,15 +45,17 @@ fn encode_seq(ms : &[u8]) -> Vec<u8> {
 }
 
 struct Control {
-    port : Option<Box<SerialPort>>,
-    port_name : String,
+    port        : Option<Box<SerialPort>>,
+    port_name   : String,
+    seq         : String,
 }
 
 impl Control {
     fn new() -> Control {
         Control {
-            port : None,
-            port_name : "".to_string(),
+            port        : None,
+            port_name   : "".to_string(),
+            seq         : "".to_string(),
         }
     }
     
@@ -246,6 +248,96 @@ impl Control {
                     })
                     .set(MANUAL_SMALL_PRIME + i, ui);
             }
+            
+        }
+        
+        { //Enter a space, comma, or semicolon delimited sequence of moves
+            Canvas::new()
+                .frame(0.0)
+                .mid_bottom_with_margin_on(CANVAS, 16.0)
+                .w(704.0)
+                .h(112.0)
+                .color(color::rgb_bytes(0x02, 0x77, 0xBD))
+                .set(SEQ_DIALOG, ui);
+                
+            Canvas::new()
+                .frame(0.0)
+                .w_of(SEQ_DIALOG)
+                .h(48.0)
+                .mid_top_of(SEQ_DIALOG)
+                .color(color::rgb_bytes(0x00, 0xB0, 0xFF))
+                .set(SEQ_TITLE_BAR, ui);
+            
+            Text::new("Sequence")
+                .middle_of(SEQ_TITLE_BAR)
+                .font_size(32)
+                .color(color::rgb_bytes(0x00, 0x00, 0x00))
+                .set(SEQ_TITLE, ui);
+            
+            TextBox::new(&mut self.seq)
+                .frame(0.0)
+                .bottom_left_with_margin_on(SEQ_DIALOG, 16.0)
+                .w(704.0-96.0-48.0)
+                .h(32.0)
+                .react(|_string: &mut String|{})
+                .color(color::rgb_bytes(0xE1, 0xF5, 0xFE))
+                .set(SEQ_TEXT_BOX, ui);
+                
+            Button::new()
+                .frame(0.0)
+                .bottom_right_with_margin_on(SEQ_DIALOG, 16.0)
+                .label("SET")
+                .w(96.0)
+                .h(32.0)
+                .react(||{
+                    let mut tmp = vec!['s' as u8];
+                    tmp.push(self.seq.split(" ").filter(|&x| {
+                        match x {
+                            "U" =>  true,
+                            "U'" => true,
+                            "R" =>  true,
+                            "R'" => true,
+                            "F" =>  true,
+                            "F'" => true,
+                            "D" =>  true,
+                            "D'" => true,
+                            "L" =>  true,
+                            "L'" => true,
+                            "B" =>  true,
+                            "B'" => true,
+                            _ => false
+                        }
+                    }).count() as u8);
+                    
+                    tmp.extend(self.seq.split(" ").filter_map(|x| {
+                        match x {
+                            "U" =>  Some(0b0000),
+                            "U'" => Some(0b1000),
+                            "R" =>  Some(0b0001),
+                            "R'" => Some(0b1001),
+                            "F" =>  Some(0b0010),
+                            "F'" => Some(0b1010),
+                            "D" =>  Some(0b0011),
+                            "D'" => Some(0b1011),
+                            "L" =>  Some(0b0100),
+                            "L'" => Some(0b1100),
+                            "B" =>  Some(0b0101),
+                            "B'" => Some(0b1101),
+                            _ => None
+                        }
+                    }));
+                    
+                    for b in &tmp {
+                        print!("0b{:b} ", b);
+                    }
+                    println!("");
+                    self.send_via_port(&tmp.as_slice())
+                })
+                .color(color::rgb_bytes(0x00, 0x91, 0xEA))
+                .set(SEQ_EXECUTE, ui);
+        }
+        
+        { //Robot Status and options
             
         }
     }
