@@ -1,16 +1,13 @@
-use util::*;
-mod util;
-/*pub use coordcube::coordcube;
-pub use cubiecube::cubiecube;
-
+use util::Util;
 
 pub mod coordcube;
 pub mod cubiecube;
-mod util;*/
+pub mod util;
 
 #[cfg(test)]
 mod test {
     #[test]
     fn it_works() {
+        util::Util::new()
     }
 }

@@ -1,4 +1,19 @@
-use std::ops::{AddAssign, Mul};
+
+pub const N_MOVES       : usize = 18;
+pub const N_MOVES2      : usize = 10;
+
+pub const N_SLICE       : usize = 495;
+pub const N_TWIST       : usize = 2187;
+pub const N_TWIST_SYM   : usize = 324;
+pub const N_FLIP        : usize = 2048;
+pub const N_FLIP_SYM    : usize = 336;
+pub const N_PERM        : usize = 40320;
+pub const N_PERM_SYM    : usize = 2768;
+pub const N_MPERM       : usize = 24;
+pub const N_COMB        : usize = 70;
+
+
+/*use std::ops::{AddAssign, Mul};
 
 mod coordcube {
 
@@ -117,4 +132,4 @@ mod coordcube {
             self.moves.push(m);
         }
     }
-}
+}*/

@@ -7,7 +7,9 @@ authors = ["Sam Blazes <sblazes16@gmail.com>"]
 conrod = "0.35.0"
 serial = "0.3.3"
 piston_window = "0.47.0"
-cubelib = {path="../cubelib"}
-solver = {path="../solver"}
-recognizer = {path="../recognizer"}
-precomputer = {path="../precomputer"}
+jni-sys  = "0.1.0"
+#RustJni = {git = "https://github.com/Monnoroch/RustJni.git"}
+#cubelib = {path="../cubelib"}
+#solver = {path="../solver"}
+#recognizer = {path="../recognizer"}
+#precomputer = {path="../precomputer"}
