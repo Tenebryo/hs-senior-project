@@ -1,7 +1,9 @@
 #[macro_use] extern crate conrod;
 extern crate piston_window;
 extern crate serial;
+extern crate libc;
 
+#[allow(unused_imports)]
 use conrod::{
     color,
     Button,
@@ -37,6 +39,14 @@ use std::time::Duration;
 type Backend = (<piston_window::G2d<'static> as conrod::Graphics>::Texture, Glyphs);
 type Ui = conrod::Ui<Backend>;
 type UiCell<'a> = conrod::UiCell<'a, Backend>;
+
+//#[link(name="rs_jni_pipe", kind="static")]
+#[link(name="jvm")]
+extern "system" {
+    fn rs_java_vm_create();
+    fn rs_java_vm_destroy();
+}
+
 
 fn encode_seq(ms : &[u8]) -> Vec<u8> {
     let mut r :Vec<u8> = vec!['s' as u8,ms.len() as u8];
