@@ -108,8 +108,8 @@ Stepper steppers[6] = {
   Stepper(30, 32, 34, 36), //Right => 1
   Stepper(38, 40, 42, 44), //Front => 2
   Stepper(46, 48, 50, 52), //Down  => 3
-  Stepper(47, 49, 51, 53)  //Left  => 4
-  Stepper(31, 33, 35, 37), //Back  => 5
+  Stepper(47, 49, 51, 53), //Left  => 4
+  Stepper(31, 33, 35, 37)  //Back  => 5
 };
 
 void setup() {

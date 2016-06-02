@@ -41,10 +41,63 @@ type Ui = conrod::Ui<Backend>;
 type UiCell<'a> = conrod::UiCell<'a, Backend>;
 
 //#[link(name="rs_jni_pipe", kind="static")]
+#[allow(dead_code)]
 #[link(name="jvm")]
 extern "system" {
-    fn rs_java_vm_create();
-    fn rs_java_vm_destroy();
+    fn rs_java_vm_create() -> libc::c_int;
+    
+    fn rs_java_vm_destroy() -> libc::c_int;
+    
+    fn solution(
+        facelets  : *const u8,
+        max_depth : libc::c_int,
+        probe_max : libc::c_longlong,
+        probe_min : libc::c_longlong,
+        verbose   : libc::c_int,
+        manuever  : *mut u8,
+        man_len   : *mut libc::size_t
+    );
+    
+    fn next(
+        probe_max : libc::c_longlong,
+        probe_min : libc::c_longlong,
+        verbose   : libc::c_int,
+        manuever  : *mut u8,
+        man_len   : *mut libc::size_t
+    );
+    
+    fn is_inited() -> libc::c_int;
+    
+    fn number_of_probes() -> libc::c_longlong;
+    
+    fn length() -> libc::c_int;
+    
+    fn init();
+}
+
+mod min2phase {
+    fn solution(facelets : [u8; 54], max_depth : i32, probe_max : i64, probe_min : i64, verbose : i32) -> String {
+    }
+    
+    fn next(probe_max : i64, probe_min : i64, verbose : i32) -> String {
+        
+    }
+    
+    fn is_inited() -> bool {
+        
+    }
+    
+    fn number_of_probes() -> i64 {
+        
+    }
+    
+    fn length() -> i32 {
+        
+    }
+    
+    fn init() {
+        
+    }
 }
 
 
@@ -58,6 +111,7 @@ struct Control {
     port        : Option<Box<SerialPort>>,
     port_name   : String,
     seq         : String,
+    facelets    : [u8; 54],
 }
 
 impl Control {
@@ -66,6 +120,7 @@ impl Control {
             port        : None,
             port_name   : "".to_string(),
             seq         : "".to_string(),
+            facelets    : [0; 54],
         }
     }
     
@@ -296,7 +351,7 @@ impl Control {
             Button::new()
                 .frame(0.0)
                 .bottom_right_with_margin_on(SEQ_DIALOG, 16.0)
-                .label("SET")
+                .label("SEND")
                 .w(96.0)
                 .h(32.0)
                 .react(||{
@@ -321,18 +376,18 @@ impl Control {
                     
                     tmp.extend(self.seq.split(" ").filter_map(|x| {
                         match x {
-                            "U" =>  Some(0b0000),
-                            "U'" => Some(0b1000),
-                            "R" =>  Some(0b0001),
-                            "R'" => Some(0b1001),
-                            "F" =>  Some(0b0010),
-                            "F'" => Some(0b1010),
-                            "D" =>  Some(0b0011),
-                            "D'" => Some(0b1011),
-                            "L" =>  Some(0b0100),
-                            "L'" => Some(0b1100),
-                            "B" =>  Some(0b0101),
-                            "B'" => Some(0b1101),
+                            "U" =>  Some(0b1000),
+                            "U'" => Some(0b0000),
+                            "R" =>  Some(0b1001),
+                            "R'" => Some(0b0001),
+                            "F" =>  Some(0b1010),
+                            "F'" => Some(0b0010),
+                            "D" =>  Some(0b1011),
+                            "D'" => Some(0b0011),
+                            "L" =>  Some(0b1100),
+                            "L'" => Some(0b0100),
+                            "B" =>  Some(0b1101),
+                            "B'" => Some(0b0101),
                             _ => None
                         }
                     }));
@@ -350,6 +405,14 @@ impl Control {
         { //Robot Status and options
             
         }
+        
+        { //Messages
+            
+        }
+        
+        { //Cube Input
+            
+        }
     }
     
     fn set_port<'a>(&'a mut self, prt : &'a str) {
@@ -361,6 +424,10 @@ static WDTH : u32 = 1280;
 static HGHT : u32 = 960;
 
 fn main() {
+    unsafe {
+        rs_java_vm_create();
+    }
+    
     let opengl = OpenGL::V3_2;
     
     let mut window: PistonWindow = WindowSettings::new("Control", [WDTH, HGHT]).opengl(opengl).exit_on_esc(true).vsync(true).build().unwrap();
@@ -382,8 +449,13 @@ fn main() {
         
         window.draw_2d(&event, |c, g| ui.draw_if_changed(c, g));
     }
+    
+    unsafe {
+        rs_java_vm_destroy();
+    }
 }
 
+#[allow(dead_code)]
 widget_ids!{
     CANVAS,
     TITLEBAR,
@@ -410,5 +482,18 @@ widget_ids!{
     SEQ_TITLE_BAR,
     SEQ_TITLE,
     SEQ_TEXT_BOX,
-    SEQ_EXECUTE
+    SEQ_EXECUTE,
+    
+    //Events and messages
+    MSG_DIALOG,
+    MSG_TITLE_BAR,
+    MSG_TITLE,
+    MSG_MSGS with 20,
+    
+    //Facelet cube inputs
+    FL_DIALOG,
+    FL_TITLE_BAR,
+    FL_TITLE,
+    FL_BOX with 6,
+    FL_FACELET with 54
 }
