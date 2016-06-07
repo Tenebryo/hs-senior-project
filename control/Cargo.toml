@@ -9,7 +9,6 @@ links="jvm"
 conrod = "0.35.0"
 serial = "0.3.3"
 piston_window = "0.47.0"
-#jni-sys  = "0.1.0"
 libc = "0.2.0"
 #RustJni = {git = "https://github.com/Monnoroch/RustJni.git"}
 #cubelib = {path="../cubelib"}

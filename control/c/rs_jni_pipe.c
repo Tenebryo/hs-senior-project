@@ -18,7 +18,7 @@ const int FN_LENGTH             = 4;
 const int FN_INIT               = 5;
 
 int rs_java_vm_create() {
-    printf("INITIALIZING JAVA\n");
+    printf("INITIALIZING THE JVM\n");
     JavaVMInitArgs vm_args; /* JDK/JRE 6 VM initialization arguments */
     JavaVMOption* options = (JavaVMOption*)malloc(2*sizeof(JavaVMOption));
     options[0].optionString = (char*)"-Djava.class.path=./min2phase/";
@@ -39,9 +39,20 @@ int rs_java_vm_create() {
     }
     
     cls = (*env)->FindClass(env, "cs/min2phase/Search");
-    printf("%16i\n", cls);
+    
+    if (!cls) {
+        printf("Error finding the Search class.\n");
+        return -1;
+    }
+    printf("CLS: %16i\n", cls);
+    
     jmethodID mid = (*env)->GetMethodID(env, cls, "<init>", "()V");
-    printf("%16i\n", mid);
+    
+    if (!mid) {
+        printf("Error finding the constructor for the Search class\n");
+        return -1;
+    }
+    printf("CTR: %16i\n", mid);
     
     /*get all the method Ids of public methods of the Search class*/
     mids[FN_SOLUTION        ] = (*env)->GetMethodID(env, cls, "solution",       "(Ljava/lang/String;IJJI)Ljava/lang/String;");
@@ -56,12 +67,20 @@ int rs_java_vm_create() {
     }
     
     obj = (*env)->NewObject(env, cls, mid);
-    printf("%16i", obj);
+    
+    if (!obj) {
+        printf("Error creating instance of the Search class\n");
+        return -1;
+    }
+    printf("OBJ: %16i\n", obj);
+    
+    printf("DONE INITIALIZING THE JVM\n");
     return 0;
 }
 
 int rs_java_vm_destroy() {
     /* We are done. */
+    printf("CLEANING UP THE JVM\n");
     return (*jvm)->DestroyJavaVM(jvm);
 }
 
@@ -69,6 +88,7 @@ int rs_java_vm_destroy() {
 void solution(const char* facelets, int max_depth, long long probe_max, long long probe_min, int verbose, char *soln, size_t *soln_len) {
     jmethodID mid;
     if (mid=mids[FN_SOLUTION]) {
+        printf("SEARCHING SOLUTION\n");
         jstring jfacelets = (*env)->NewStringUTF(env, facelets);
         
         jstring solution_manuever = (*env)->CallObjectMethod(env, obj, mid, 
@@ -79,10 +99,17 @@ void solution(const char* facelets, int max_depth, long long probe_max, long lon
             (jint)verbose
         );
         
-        *soln_len = (*env)->GetStringUTFLength(env, solution_manuever);
-        (*env)->GetStringUTFChars(env, solution_manuever, soln);
+        jint t = (*env)->GetStringUTFLength(env, solution_manuever);
+        *soln_len = (int)t;
+        
+        jboolean test;
+        char *s = (*env)->GetStringUTFChars(env, solution_manuever, &test);
+        memcpy(soln, s, t);
+        printf("FINISHED SEARCHING\n");
+        return;
     }
     *soln_len = 0;
+    printf("ERROR LOADING FUNCTION: SOLUTION\n");
 }
 
 void next(long long probe_max, long long probe_min, int verbose, char *soln, size_t *soln_len) {
@@ -138,7 +165,11 @@ void init() {
     jmethodID mid;
     if (mid=mids[FN_INIT]) {
         
+        printf("INITIALIZING SOLVER\n");
+        
         (*env)->CallStaticVoidMethod(env, cls, mid);
+        
+        printf("DONE INITIALIZING SOLVER\n");
         
     }
 }

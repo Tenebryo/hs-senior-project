@@ -119,6 +119,16 @@ void setup() {
   Serial.begin(9600);
 }
 
+bool is_opposite(char a, char b) {
+  if (a > b) {
+    return is_opposite(b, a);
+  } else {
+    return (a==0 && b==3) ||
+           (a==1 && b==4) ||
+           (a==2 && b==5);
+  }
+}
+
 void loop() {
   char buf[64];
   if (Serial.available()) {
@@ -138,7 +148,16 @@ void loop() {
         for (int i = 0; i < n; i++) {
           char cmd = buf[i];
 
-          steppers[get_cmd_stepper_index(cmd)].step((get_cmd_direction(cmd) ? 1 : -1)*steps_per_quarter_turn , micros_between_steps);
+          if (i != n-1 && is_opposite(cmd, buf[i+1])) {
+            char cm2 = buf[i+1]
+            Stepper::simul_step_steppers(
+              steppers[get_cmd_stepper_index(cmd)], (get_cmd_direction(cmd) ? 1 : -1)*steps_per_quarter_turn,
+              steppers[get_cmd_stepper_index(cm2)], (get_cmd_direction(cm2) ? 1 : -1)*steps_per_quarter_turn,
+              micros_between_steps
+            );
+          } else {
+            steppers[get_cmd_stepper_index(cmd)].step((get_cmd_direction(cmd) ? 1 : -1)*steps_per_quarter_turn , micros_between_steps);
+          }
           delay(millis_between_moves);
         }
       }
